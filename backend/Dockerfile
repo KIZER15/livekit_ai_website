@@ -36,12 +36,14 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 # Install system dependencies (gcc, python3-dev are often needed for audio/webrtc libs)
 # We also install 'supervisor' to manage running two scripts at once.
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
     build-essential \
     supervisor \
     ca-certificates \
+    ffmpeg \
+    libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-privileged user
