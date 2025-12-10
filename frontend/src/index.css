@@ -31,3 +31,20 @@
 .animate-fade-in-up {
   animation: fadeInUp 0.4s ease-out forwards;
 }
+
+.voice-assistant-container {
+  position: relative;
+  min-height: 400px;
+}
+
+.transcription-content {
+  overflow-y: auto;
+  margin-bottom: 96px; /* Space for the controls */
+}
+
+.voice-controls {
+  position: absolute;
+  left: 24px; right: 24px; bottom: 24px;
+  display: flex;
+  gap: 1rem;
+}

@@ -19,7 +19,7 @@ from livekit.plugins.openai import realtime
 from openai.types.beta.realtime.session import TurnDetection
 
 logger = logging.getLogger("agent")
-load_dotenv()
+load_dotenv(override=True)
 server = AgentServer()
 
 @server.rtc_session()
@@ -54,12 +54,12 @@ async def my_agent(ctx: JobContext):
     )
 
     # --- Background Audio Setup ---
-    # background_audio = BackgroundAudioPlayer(
-    # ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=1.0),
-    # thinking_sound=[
-    #     AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING, volume=1.0),
-    #     ],
-    # )
+    background_audio = BackgroundAudioPlayer(
+        ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.25),
+        thinking_sound=[
+            AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING, volume=0.6),
+        ],
+    )
       
 
     # Start the session
@@ -75,13 +75,18 @@ async def my_agent(ctx: JobContext):
         ),
     )
 
-    # --- Background Audio Setup --- 
-    background_audio = BackgroundAudioPlayer(ambient_sound="D:/code/ai_website/livekit_ai_website/office-ambience-6322.mp3")
-    await background_audio.start(room=ctx.room, agent_session=session)
+    # # --- Background Audio Setup --- 
+    try:
+        await background_audio.start(room=ctx.room, agent_session=session)
+        logger.info("Background audio started")
+    except Exception as e:
+        logger.warning(f"Could not start background audio: {e}", exc_info=True)
         
     # --- INITIATING SPEECH (The Agent Speaks First) ---
     welcome_message = "Welcome to Indus Net Technologies. I am marin. How can I help you today?"
     await session.say(text=welcome_message, allow_interruptions=True)
+
+    #await ctx.wait_until_done()
 
 if __name__ == "__main__":
     cli.run_app(server)
