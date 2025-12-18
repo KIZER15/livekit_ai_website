@@ -14,7 +14,8 @@ from livekit.agents import (
 )
 from livekit.plugins import noise_cancellation, silero, openai
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
-from agents.web_agent import Webagent
+# from agents.web_agent import Webagent
+from agents.solarsquare_agent import SolarsquareAgent
 from livekit.plugins.openai import realtime
 from openai.types.beta.realtime.session import TurnDetection
 import os
@@ -73,7 +74,7 @@ async def my_agent(ctx: JobContext):
 
     # Start the session
     await session.start(
-        agent=Webagent(room=ctx.room),
+        agent=SolarsquareAgent(room=ctx.room),
         room=ctx.room,
         room_options=room_io.RoomOptions(
             audio_input=room_io.AudioInputOptions(
@@ -92,7 +93,8 @@ async def my_agent(ctx: JobContext):
         logger.warning(f"Could not start background audio: {e}", exc_info=True)
         
     # --- INITIATING SPEECH (The Agent Speaks First) ---
-    welcome_message = "Welcome to Indus Net Technologies. I am Aarti. How can I help you today?"
+    #welcome_message = "Welcome to Indus Net Technologies. I am Aarti. How can I help you today?"
+    welcome_message = "Welcome to Solar Square. I am Vyom. How can I help you today?"
     await session.say(text=welcome_message, allow_interruptions=True)
 
 if __name__ == "__main__":
