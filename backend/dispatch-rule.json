@@ -1,0 +1,16 @@
+{
+  "dispatch_rule": {
+    "rule": {
+      "dispatchRuleIndividual": {
+        "roomPrefix": "room-"
+      }
+    },
+    "roomConfig": {
+      "agents": [
+        {
+          "agentName": "my_agent"
+        }
+      ]
+    }
+  }
+}

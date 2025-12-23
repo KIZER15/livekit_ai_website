@@ -15,7 +15,8 @@ from livekit.agents import (
 from livekit.plugins import noise_cancellation, silero, openai
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 # from agents.web_agent import Webagent
-from agents.solarsquare_agent import SolarsquareAgent
+#from agents.solarsquare_agent import SolarsquareAgent
+from agents.restaurant_agent import RestaurantAgent
 from livekit.plugins.openai import realtime
 from openai.types.beta.realtime.session import TurnDetection
 import os
@@ -32,7 +33,7 @@ server = AgentServer(
     ws_url=os.getenv("LIVEKIT_URL"),
 )
 
-@server.rtc_session()
+@server.rtc_session(agent_name="my_agent")
 async def my_agent(ctx: JobContext):
 
     # session = AgentSession(
@@ -66,7 +67,7 @@ async def my_agent(ctx: JobContext):
     background_audio = BackgroundAudioPlayer(
         ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.9),
         thinking_sound=[
-            AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING, volume=0.6),
+            AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING, volume=0.8),
         ],
     )
                 
@@ -74,7 +75,7 @@ async def my_agent(ctx: JobContext):
 
     # Start the session
     await session.start(
-        agent=SolarsquareAgent(room=ctx.room),
+        agent=RestaurantAgent(room=ctx.room),
         room=ctx.room,
         room_options=room_io.RoomOptions(
             audio_input=room_io.AudioInputOptions(
@@ -94,7 +95,8 @@ async def my_agent(ctx: JobContext):
         
     # --- INITIATING SPEECH (The Agent Speaks First) ---
     #welcome_message = "Welcome to Indus Net Technologies. I am Aarti. How can I help you today?"
-    welcome_message = "Welcome to Solar Square. I am Vyom. How can I help you today?"
+    #welcome_message = "Welcome to Solar Square. I am Vyom. How can I help you today?"
+    welcome_message = "Hi, this is Vyom, your restaurant booking assistant. How can I help you today?"
     await session.say(text=welcome_message, allow_interruptions=True)
 
 if __name__ == "__main__":
