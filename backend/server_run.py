@@ -7,7 +7,7 @@ def main():
 
     cmd = [
         "gunicorn",
-        "server:app",                     # your ASGI/FastAPI app
+        "server2:app",                     # your ASGI/FastAPI app
         "-k",
         "uvicorn.workers.UvicornWorker",    
         "--workers", "2",
