@@ -14,14 +14,10 @@ from livekit.agents import (
 )
 from livekit.plugins import noise_cancellation, silero, openai
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
-# from agents.web_agent import Webagent
-#from agents.solarsquare_agent import SolarsquareAgent
-from agents.restaurant_agent import RestaurantAgent
+from agents.web_agent import Webagent
 from livekit.plugins.openai import realtime
 from openai.types.beta.realtime.session import TurnDetection
 import os
-import json
-import asyncio
 
 logger = logging.getLogger("agent")
 load_dotenv(override=True)
@@ -35,16 +31,6 @@ server = AgentServer(
 
 @server.rtc_session(agent_name="my_agent")
 async def my_agent(ctx: JobContext):
-
-    # session = AgentSession(
-    #     stt=inference.STT(model="assemblyai/universal-streaming", language="en"),
-    #     llm=inference.LLM(model="openai/gpt-4.1-mini"),
-    #     tts=inference.TTS(model="cartesia/sonic-3", voice="9626c31c-bec5-4cca-baa8-f8ba9e84c8bc"),
-    #     turn_detection=MultilingualModel(),
-    #     vad=silero.VAD.load(min_speech_duration=0.3, activation_threshold=0.6),
-    #     preemptive_generation=True, # True = tarts talking immediately.
-    # )
-
     session = AgentSession(
         llm=realtime.RealtimeModel(
             turn_detection=TurnDetection(
@@ -56,7 +42,7 @@ async def my_agent(ctx: JobContext):
             ),
             modalities = ['text'],
         ),
-        tts=inference.TTS(model="cartesia/sonic-3", voice="9cebb910-d4b7-4a4a-85a4-12c79137724c"),
+        tts=inference.TTS(model="cartesia/sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f"), # Anita
         turn_detection=MultilingualModel(),
         vad=silero.VAD.load(min_speech_duration=0.3, activation_threshold=0.7),
         preemptive_generation=False,
@@ -75,7 +61,7 @@ async def my_agent(ctx: JobContext):
 
     # Start the session
     await session.start(
-        agent=RestaurantAgent(room=ctx.room),
+        agent=Webagent(room=ctx.room),
         room=ctx.room,
         room_options=room_io.RoomOptions(
             audio_input=room_io.AudioInputOptions(
@@ -94,9 +80,7 @@ async def my_agent(ctx: JobContext):
         logger.warning(f"Could not start background audio: {e}", exc_info=True)
         
     # --- INITIATING SPEECH (The Agent Speaks First) ---
-    #welcome_message = "Welcome to Indus Net Technologies. I am Aarti. How can I help you today?"
-    #welcome_message = "Welcome to Solar Square. I am Vyom. How can I help you today?"
-    welcome_message = "Hi, this is Vyom, your restaurant booking assistant. How can I help you today?"
+    welcome_message = "Welcome to Indus Net Technologies. I am Aarti. How can I help you today?"
     await session.say(text=welcome_message, allow_interruptions=True)
 
 if __name__ == "__main__":

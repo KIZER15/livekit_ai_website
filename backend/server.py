@@ -10,8 +10,6 @@ from fastapi.responses import PlainTextResponse
 from livekit import api as lk_api
 from livekit.api import LiveKitAPI, ListRoomsRequest
 
-from twilio.rest import Client
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,12 +25,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Initialize the Twilio client
-account_sid = os.getenv("TWILIO_ACCOUNT_SID")
-auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-client = Client(account_sid, auth_token)
-
 
 
 async def get_rooms() -> list[str]:
@@ -89,28 +81,6 @@ async def get_token(name: str = Query("guest"), room: Optional[str] = Query(None
     except Exception as e:
         logger.error(f"Error generating JWT: {e}", exc_info=True)
         return "Error generating token."
-
-
-
-# Generate test call
-@app.get("/api/testCall/{to_phone_number}")
-async def test_call(to_phone_number: str):
-    try:
-
-        logger.info(f"Generating call to {to_phone_number}")
-
-        call = client.calls.create(
-            to=to_phone_number,
-            from_="+16506435672",
-            url="https://handler.twilio.com/twiml/EHf0d0394ec95c850816dff5cd1163e446"
-        )
-        if call.sid:
-            return {"status": 0, "data": call.sid, "message": ""}
-        else:
-            return {"status": -1, "data": None, "message": "Call failed"}
-    except Exception as e:
-        logger.error(f"Error generating call: {e}", exc_info=True)
-        return {"status": -1, "data": None, "message": str(e)}
 
 
 @app.get("/health", response_class=PlainTextResponse)
