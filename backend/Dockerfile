@@ -1,61 +1,129 @@
-# syntax=docker/dockerfile:1
-FROM python:3.11-slim
+# # syntax=docker/dockerfile:1
+# FROM python:3.11-slim
 
-# Prevent Python from buffering stdout/stderr (Crucial for logs)
-ENV PYTHONUNBUFFERED=1
-# Prevent Python from writing pyc files
-ENV PYTHONDONTWRITEBYTECODE=1
+# # Prevent Python from buffering stdout/stderr (Crucial for logs)
+# ENV PYTHONUNBUFFERED=1
+# # Prevent Python from writing pyc files
+# ENV PYTHONDONTWRITEBYTECODE=1
 
-# Install system dependencies (gcc, python3-dev are often needed for audio/webrtc libs)
-# We also install 'supervisor' to manage running two scripts at once.
+# # Install system dependencies (gcc, python3-dev are often needed for audio/webrtc libs)
+# # We also install 'supervisor' to manage running two scripts at once.
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     gcc \
+#     python3-dev \
+#     build-essential \
+#     supervisor \
+#     ca-certificates \
+#     ffmpeg \
+#     libsndfile1 \
+#     && rm -rf /var/lib/apt/lists/*
+
+# # Create a non-privileged user
+# ARG UID=10001
+# RUN adduser \
+#     --disabled-password \
+#     --gecos "" \
+#     --home "/home/appuser" \
+#     --shell "/sbin/nologin" \
+#     --uid "${UID}" \
+#     appuser
+
+# # Set working directory
+# WORKDIR /home/appuser
+
+# # Copy requirements first to leverage Docker cache
+# COPY requirements.txt .
+
+# # Install dependencies directly as the appuser
+# # (No need for multi-stage complexity here unless your builds are huge. 
+# #  Direct install ensures all shared libs connect correctly.)
+# USER appuser
+# RUN pip install --user --no-cache-dir -r requirements.txt
+
+# # Add user's local bin to PATH so we can run installed scripts
+# ENV PATH="/home/appuser/.local/bin:$PATH"
+
+# # Copy the rest of the application code
+# COPY --chown=appuser:appuser . .
+
+# # Download models at build time
+# RUN python agent_session.py download-files
+
+# # Copy the supervisord configuration file
+# COPY --chown=appuser:appuser supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# # Expose the port your server_run.py uses
+# EXPOSE 8000
+
+# # Start Supervisor (which will start your two python scripts)
+# CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+
+# =============================================================================
+# STAGE 1: Builder Stage - Install all build dependencies
+# =============================================================================
+FROM python:3.11-slim AS builder
+
+# Install build dependencies in one layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
     build-essential \
-    supervisor \
-    ca-certificates \
-    ffmpeg \
-    libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-privileged user
-ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/home/appuser" \
-    --shell "/sbin/nologin" \
-    --uid "${UID}" \
-    appuser
+WORKDIR /build
 
-# Set working directory
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# =============================================================================
+# STAGE 2: Runtime Stage - Minimal Debian slim image with supervisor
+# =============================================================================
+FROM python:3.11-slim AS runtime
+
+# Install only runtime dependencies (no compilers needed)
+# Debian slim has better package availability than Alpine for ffmpeg/audio libs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsndfile1 \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-privileged user
+ARG UID=10001
+RUN useradd -m -s /sbin/nologin -u ${UID} appuser
+
 WORKDIR /home/appuser
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+# Copy only installed Python packages from builder
+COPY --from=builder /install /usr/local
 
-# Install dependencies directly as the appuser
-# (No need for multi-stage complexity here unless your builds are huge. 
-#  Direct install ensures all shared libs connect correctly.)
-USER appuser
-RUN pip install --user --no-cache-dir -r requirements.txt
-
-# Add user's local bin to PATH so we can run installed scripts
-ENV PATH="/home/appuser/.local/bin:$PATH"
-
-# Copy the rest of the application code
+# Copy application code
 COPY --chown=appuser:appuser . .
 
-# Download models at build time
-RUN python agent_session.py download-files
-
-# Copy the supervisord configuration file
+# Copy supervisord configuration
 COPY --chown=appuser:appuser supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Expose the port your server_run.py uses
+# Download models at build time
+USER root
+RUN python agent_session.py download-files
+USER appuser
+
+# Switch to non-privileged user
+USER appuser
+
+# Add user's local bin to PATH
+ENV PATH="/home/appuser/.local/bin:$PATH"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000')" || exit 1
+
+# Expose port
 EXPOSE 8000
 
-# Start Supervisor (which will start your two python scripts)
+# Start supervisor to manage both processes
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
 
