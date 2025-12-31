@@ -16,11 +16,13 @@ from livekit.plugins import noise_cancellation, silero, openai
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 from agents.web_agent import Webagent
 from agents.invoice_agent import InvoiceAgent
+from agents.restaurant_agent import RestaurantAgent
 from livekit.plugins.openai import realtime
 from livekit.plugins import cartesia
 from openai.types.beta.realtime.session import TurnDetection
 import os
 import json
+import asyncio
 
 logger = logging.getLogger("agent")
 load_dotenv(override=True)
@@ -30,6 +32,7 @@ load_dotenv(override=True)
 AGENT_TYPES = {
     "web": Webagent,
     "invoice": InvoiceAgent,
+    "restaurant": RestaurantAgent
 }
 
 
@@ -42,18 +45,6 @@ server = AgentServer(
 
 @server.rtc_session()
 async def my_agent(ctx: JobContext):
-
-    # Determine agent type based on room metadata or fallback to "web"
-    agent_type = "web"
-    participant = await ctx.wait_for_participant()
-    print(participant.identity, participant.metadata)
-    if ctx.room.metadata:
-        try:
-            agent_type = json.loads(ctx.room.metadata).get("agent", "web")
-        except Exception:
-            logger.error("Error parsing agent type from metadata. Getting default agent.")
-
-    AgentClass = AGENT_TYPES.get(agent_type, Webagent)
   
 
     session = AgentSession(
@@ -68,8 +59,8 @@ async def my_agent(ctx: JobContext):
             modalities = ['text'],
             api_key=os.getenv("OPENAI_API_KEY")
         ),
-        #tts=inference.TTS(model="cartesia/sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f"), # Anita
-        tts=cartesia.TTS(model="sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f",api_key=os.getenv("CARTESIA_API_KEY")),
+        tts=inference.TTS(model="cartesia/sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f"), # Anita
+        #tts=cartesia.TTS(model="sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f",api_key=os.getenv("CARTESIA_API_KEY")),
 
         turn_detection=MultilingualModel(),
         vad=silero.VAD.load(min_speech_duration=0.3, activation_threshold=0.7),
@@ -86,10 +77,8 @@ async def my_agent(ctx: JobContext):
     )
                 
     # ---- START SESSION ----
-    agent_instance = AgentClass(room=ctx.room)
-    # Start the session
     await session.start(
-        agent=agent_instance,
+        agent=InvoiceAgent(room=ctx.room), # Default agent
         room=ctx.room,
         room_options=room_io.RoomOptions(
             audio_input=room_io.AudioInputOptions(
@@ -100,9 +89,29 @@ async def my_agent(ctx: JobContext):
         ),
     )
 
-    # --- Background Audio Setup --- 
+    # WAIT for participant
+    participant = await ctx.wait_for_participant()
+    logger.info( f"Participant joined: {participant.identity}, metadata={participant.metadata}")
+
+    # Determine agent type based on room metadata or fallback to "web"
+    agent_type = "web"
+    if participant.metadata:
+        try:
+            agent_type = json.loads(participant.metadata).get("agent", "web")
+        except Exception:
+            logger.error("Error parsing agent type from metadata. Getting default agent.")
+
+    AgentClass = AGENT_TYPES.get(agent_type, Webagent)
+
+    # Agent instance with agent type
+    agent_instance = AgentClass(room=ctx.room)
+
+    # Attach the agent to the session
+    session.update_agent(agent=agent_instance)
+
+    # --- Background Audio Setup (in a separate task) --- 
     try:
-        await background_audio.start(room=ctx.room, agent_session=session)
+        asyncio.create_task(background_audio.start(room=ctx.room, agent_session=session))
         logger.info("Background audio started")
     except Exception as e:
         logger.warning(f"Could not start background audio: {e}", exc_info=True)
