@@ -27,7 +27,7 @@ import json
 import asyncio
 
 # Recording input
-from recording.recording import start_audio_recording
+from recording.recording import start_audio_recording, record_participant_audio, start_audio_recording2
 
 logger = logging.getLogger("agent")
 load_dotenv(override=True)
@@ -48,6 +48,16 @@ server = AgentServer(
     api_secret=os.getenv("LIVEKIT_API_SECRET"),
     ws_url=os.getenv("LIVEKIT_URL"),
 )
+
+
+# Helper function to handle the Egress call in background
+async def trigger_recording(room_name, agent_type):
+    try:
+        info = await start_audio_recording(room_name=room_name, agent_name=agent_type)
+        logger.info(f"Egress started successfully: {info}")
+    except Exception as e:
+        logger.error(f"Failed to start Egress: {e}")
+
 
 @server.rtc_session()
 async def my_agent(ctx: JobContext):
@@ -99,10 +109,6 @@ async def my_agent(ctx: JobContext):
     participant = await ctx.wait_for_participant()
     logger.info( f"Participant joined: {participant.identity}, metadata={participant.metadata}")
 
-    # Start recording
-    recordin_info = await start_audio_recording(room_name=ctx.room.name)
-    logger.info(f"Audio recording started: {recordin_info}")
-
     # Determine agent type based on room metadata or fallback to "web"
     agent_type = "web"
     if participant.metadata:
@@ -118,6 +124,10 @@ async def my_agent(ctx: JobContext):
 
     # Attach the agent to the session
     session.update_agent(agent=agent_instance)
+
+    # Start recording in a separate task
+    #asyncio.create_task(trigger_recording(ctx.room.name, agent_type))
+    asyncio.create_task(start_audio_recording2(ctx.room.name, agent_type))
 
     # --- Background Audio Setup (in a separate task) --- 
     try:
