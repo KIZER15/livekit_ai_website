@@ -26,6 +26,9 @@ import os
 import json
 import asyncio
 
+# Recording input
+from recording.recording import start_audio_recording
+
 logger = logging.getLogger("agent")
 load_dotenv(override=True)
 
@@ -62,8 +65,8 @@ async def my_agent(ctx: JobContext):
             modalities = ['text'],
             api_key=os.getenv("OPENAI_API_KEY")
         ),
-        tts=inference.TTS(model="cartesia/sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f"), # Anita
-        # tts=cartesia.TTS(model="sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f",api_key=os.getenv("CARTESIA_API_KEY")),
+        # tts=inference.TTS(model="cartesia/sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f"), # Anita
+        tts=cartesia.TTS(model="sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f",api_key=os.getenv("CARTESIA_API_KEY")),
 
         turn_detection=MultilingualModel(),
         vad=silero.VAD.load(min_speech_duration=0.3, activation_threshold=0.7),
@@ -95,6 +98,10 @@ async def my_agent(ctx: JobContext):
     # WAIT for participant
     participant = await ctx.wait_for_participant()
     logger.info( f"Participant joined: {participant.identity}, metadata={participant.metadata}")
+
+    # Start recording
+    recordin_info = await start_audio_recording(room_name=ctx.room.name)
+    logger.info(f"Audio recording started: {recordin_info}")
 
     # Determine agent type based on room metadata or fallback to "web"
     agent_type = "web"
