@@ -18,6 +18,7 @@ from agents.web.web_agent import Webagent
 from agents.invoice.invoice_agent import InvoiceAgent
 from agents.restaurant.restaurant_agent import RestaurantAgent
 from agents.banking.banking_agent import BankingAgent
+from agents.translation.translation_agent import TranslationAgent
 from livekit.plugins.openai import realtime
 from livekit.plugins import openai
 from livekit.plugins import cartesia
@@ -39,7 +40,8 @@ AGENT_TYPES = {
     "web": Webagent,
     "invoice": InvoiceAgent,
     "restaurant": RestaurantAgent,
-    "bank": BankingAgent
+    "bank": BankingAgent,
+    "translation": TranslationAgent
 }
 
 
@@ -93,7 +95,8 @@ async def my_agent(ctx: JobContext):
                 modalities=['text'],
                 api_key=os.getenv("OPENAI_API_KEY")
             ),
-            tts=cartesia.TTS(model="sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f", api_key=os.getenv("CARTESIA_API_KEY")),
+            tts=inference.TTS(model="cartesia/sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f"),
+            # tts=cartesia.TTS(model="sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f", api_key=os.getenv("CARTESIA_API_KEY")),
             vad=silero.VAD.load(min_speech_duration=0.3),
         )
 
