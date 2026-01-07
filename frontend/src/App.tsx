@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import BankingPage from './pages/BankingPage';
 import { LiveKitRoom, RoomAudioRenderer, StartAudio } from '@livekit/components-react';
-import VoiceAssistant from './components4_bank/VoiceAssistant';
+import VoiceAssistant from './components2_bank/VoiceAssistant';
 import { useEffect, useState } from 'react';
 
 // Safely access environment variables with fallback

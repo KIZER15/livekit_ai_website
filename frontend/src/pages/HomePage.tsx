@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Header } from '../components4_bank/Header';
+import { Header } from '../components2_bank/Header';
 import { AlertCircle, Mic } from 'lucide-react';
 
 // Safely access environment variables with fallback

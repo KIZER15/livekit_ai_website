@@ -2,10 +2,10 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LiveKitRoom, RoomAudioRenderer, StartAudio, useVoiceAssistant, useLocalParticipant } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-import { BankingDashboardUI } from '../components4_bank/banking/BankingDashboardUI';
-import { AgentCardUI } from '../components4_bank/banking/AgentCardUI';
+import { BankingDashboardUI } from '../components2_bank/banking/BankingDashboardUI';
+import { AgentCardUI } from '../components2_bank/banking/AgentCardUI';
 import { Bot } from 'lucide-react';
-import '../components4_bank/banking/VoiceAgentStyles.css';
+import '../components2_bank/banking/VoiceAgentStyles.css';
 
 const BACKEND_URL = import.meta.env?.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
 const LIVEKIT_URL = import.meta.env?.VITE_LIVEKIT_URL || '';
