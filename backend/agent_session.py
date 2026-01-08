@@ -19,7 +19,9 @@ from agents.invoice.invoice_agent import InvoiceAgent
 from agents.restaurant.restaurant_agent import RestaurantAgent
 from agents.banking.banking_agent import BankingAgent
 from agents.tour.tour_agent import TourAgent
-from livekit.plugins.openai import realtime
+# from livekit.plugins.openai import realtime
+from livekit.plugins.openai.realtime import RealtimeModel
+from openai.types import realtime
 from livekit.plugins import openai
 from livekit.plugins import cartesia
 from openai.types.beta.realtime.session import TurnDetection
@@ -66,10 +68,16 @@ async def my_agent(ctx: JobContext):
   
 
     session = AgentSession(
-        llm=realtime.RealtimeModel(
+        llm=RealtimeModel(
+            input_audio_transcription = realtime.AudioTranscription(
+                    model="gpt-4o-transcribe",
+                    prompt="This is a coneversation between a customer and an agent." \
+                    "Whever you get Urdu transcribe to Hindi",
+                ),
+            input_audio_noise_reduction = "near_field",
             turn_detection=TurnDetection(
                 type="semantic_vad",
-                eagerness="medium",
+                eagerness="auto",
                 create_response=True,
                 interrupt_response=True,
                 idle_timeout_ms=30000
@@ -78,10 +86,14 @@ async def my_agent(ctx: JobContext):
             api_key=os.getenv("OPENAI_API_KEY")
         ),
         tts=inference.TTS(model="cartesia/sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f"), # Anita
-        # tts=cartesia.TTS(model="sonic-3", voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f",api_key=os.getenv("CARTESIA_API_KEY")),
+        # tts=cartesia.TTS(model="sonic-3", 
+        #                  voice="209d9a43-03eb-40d8-a7b7-51a6d54c052f",
+        #                  api_key=os.getenv("CARTESIA_API_KEY"),
+        #                  emotion="happy",
+        #                  volume=1.2),
 
-        turn_detection=MultilingualModel(),
-        vad=silero.VAD.load(min_speech_duration=0.3, activation_threshold=0.7),
+        # turn_detection=MultilingualModel(),
+        # vad=silero.VAD.load(min_speech_duration=0.3, activation_threshold=0.7),
         preemptive_generation=False,
         use_tts_aligned_transcript=True,
     )

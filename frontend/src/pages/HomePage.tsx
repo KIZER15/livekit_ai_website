@@ -115,7 +115,7 @@ export default function HomePage() {
                             Banking Agent
                         </button>
                         <button
-                            onClick={() => connect('tour')}
+                            onClick={() => navigate('/jharkhand')}
                             disabled={connecting}
                             className="group relative w-full max-w-xs mx-auto py-4 px-8 bg-primary hover:bg-primary-hover text-white text-lg rounded-full font-semibold transition-all shadow-lg hover:shadow-primary/30 hover:-translate-y-1 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                         >

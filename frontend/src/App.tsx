@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import BankingPage from './pages/BankingPage';
+import JharkhandPage from './pages/JharkhandPage';
 import { LiveKitRoom, RoomAudioRenderer, StartAudio } from '@livekit/components-react';
 import VoiceAssistant from './components2_bank/VoiceAssistant';
 import { useEffect, useState } from 'react';
@@ -65,7 +66,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/bank" element={<BankingPage />} />
-      <Route path="/tour" element={<LegacyAgentPage agentType="tour" />} />
+      <Route path="/jharkhand" element={<JharkhandPage />} />
       <Route path="/web" element={<LegacyAgentPage agentType="web" />} />
       <Route path="/invoice" element={<LegacyAgentPage agentType="invoice" />} />
       <Route path="/restaurant" element={<LegacyAgentPage agentType="restaurant" />} />
