@@ -28,7 +28,7 @@ app.add_middleware(
 )
 
 ## The agent currently supported
-ALLOWED_AGENTS = {"web", "invoice", "restaurant", "bank", "translation"}
+ALLOWED_AGENTS = {"web", "invoice", "restaurant", "bank", "tour"}
 
 
 async def get_rooms() -> list[str]:
@@ -88,6 +88,14 @@ async def get_token(name: str = Query("guest"), agent: str = Query("web") ,room:
         logger.error(f"Error generating JWT: {e}", exc_info=True)
         return "Error generating token."
 
+
+# Pssword check
+@app.get("/api/checkPassword", response_class=PlainTextResponse)
+async def check_password(password: str = Query("guest")):
+    if password.lower() == 'lvk_agents':
+        return "ok"
+    else:
+        return "Unauthorized"
 
 @app.get("/health", response_class=PlainTextResponse)
 async def health():

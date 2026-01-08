@@ -1,15 +1,18 @@
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import BankingPage from './pages/BankingPage';
+import JharkhandPage from './pages/JharkhandPage';
 import { LiveKitRoom, RoomAudioRenderer, StartAudio } from '@livekit/components-react';
 import VoiceAssistant from './components2_bank/VoiceAssistant';
+import { LockScreen } from './components2_bank/LockScreen';
 import { useEffect, useState } from 'react';
+import type { AgentType } from './types/agent';
 
 // Safely access environment variables with fallback
 const LIVEKIT_URL = import.meta.env?.VITE_LIVEKIT_URL || '';
 
 // Legacy agent component wrapper (for web/invoice/restaurant agents)
-function LegacyAgentPage({ agentType }: { agentType: 'web' | 'invoice' | 'restaurant' | 'translation' }) {
+function LegacyAgentPage({ agentType }: { agentType: AgentType }) {
   const [token, setToken] = useState<string>('');
 
   useEffect(() => {
@@ -60,14 +63,34 @@ function LegacyAgentPage({ agentType }: { agentType: 'web' | 'invoice' | 'restau
 }
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    const authStatus = sessionStorage.getItem('authenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleUnlock = () => {
+    setIsAuthenticated(true);
+  };
+
+  // Show lock screen if not authenticated
+  if (!isAuthenticated) {
+    return <LockScreen onUnlock={handleUnlock} />;
+  }
+
+  // Show main application routes once authenticated
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/bank" element={<BankingPage />} />
+      <Route path="/jharkhand" element={<JharkhandPage />} />
       <Route path="/web" element={<LegacyAgentPage agentType="web" />} />
       <Route path="/invoice" element={<LegacyAgentPage agentType="invoice" />} />
       <Route path="/restaurant" element={<LegacyAgentPage agentType="restaurant" />} />
-      <Route path="/translation" element={<LegacyAgentPage agentType="translation" />} />
     </Routes>
   );
 }
