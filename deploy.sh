@@ -1,39 +1,24 @@
 #!/bin/bash
 set -e
 
+# Ensure .env exists
+if [ ! -f .env ]; then
+    echo "Error: .env file is missing."
+    exit 1
+fi
+
 echo "Starting deployment..."
 
 echo "Pulling latest code..."
-git pull origin master  # or 'main', as per your default branch
+git pull origin master
 
-echo "Building and starting backend..."
-docker compose up -d --build backend
+echo "Building and starting services..."
+# --wait ensures we wait for healthchecks to pass before exiting the command
+# This effectively replaces the manual loop used previously
+docker compose up -d --build --wait
 
-echo "Waiting for backend to become healthy..."
-for i in {1..15}; do
-  STATUS=$(docker inspect --format='{{.State.Health.Status}}' livekit_ai_website-backend-1 2>/dev/null || echo "starting")
-  if [ "$STATUS" = "healthy" ]; then
-    echo "Backend is healthy."
-    break
-  fi
-  sleep 2
-done
-
-if [ "$STATUS" != "healthy" ]; then
-  echo "Backend failed health check. Aborting deployment."
-  exit 1
-fi
-
-echo "Building and starting frontend..."
-docker compose up -d --build frontend
-
-echo "Cleaning unused containers..."
-docker container prune -f
-
-echo "Cleaning unused images..."
-docker image prune -f
-
-echo "Cleaning unused networks..."
-docker network prune -f
+echo "Cleaning up..."
+# Prune stopped containers, networks, and dangling images
+docker system prune -f
 
 echo "Deployment completed successfully."
