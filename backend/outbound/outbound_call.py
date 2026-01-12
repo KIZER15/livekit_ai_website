@@ -5,6 +5,7 @@ import logging
 import sys
 from dotenv import load_dotenv
 from livekit import api
+import random
 
 load_dotenv()
 
@@ -19,7 +20,7 @@ async def make_call(phone_number: str, agent_type: str = "invoice"):
     lkapi = api.LiveKitAPI()
     
     # Ensure unique room name
-    unique_room_name = f"{room_name}-{phone_number[-4:]}"
+    unique_room_name = f"{room_name}-{phone_number[-4:]}-{random.randint(1000, 9999)}"
     
     metadata = json.dumps({"agent": agent_type, "phone": phone_number})
     
