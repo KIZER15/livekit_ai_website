@@ -16,5 +16,6 @@ class RealestateAgent(Agent):
     @property
     def welcome_message(self):
         # welcome_message = f"<emotion value='content' />“Hello sir, good day. May I speak with Avi please?”"
-        welcome_message = "Hello! ... Good day. May I speak with Avi, please?"
+        welcome_message = ("Hi Ravi, this is VYOM calling from the House of Abhinandan Lodha."
+                            "We are part of the Abhinandan Lodha group, known for developing premium and thoughtfully planned residential destinations across India")
         return welcome_message
