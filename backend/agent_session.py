@@ -157,11 +157,13 @@ async def my_agent(ctx: JobContext):
     # Check if SIP call 
     if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
         # Check sip status for incomming and outgoing
-        if json.loads(participant.metadata).get("call_type") == "outbound":
+        if participant.metadata and participant.metadata.strip():
             try:
-                logger.info("Outbound call detected")
-                agent_type = json.loads(participant.metadata).get("agent", "web")
-                logger.info(f"Agent type from metadata: {agent_type}")
+                metadata = json.loads(participant.metadata)
+                if metadata.get("call_type") == "outbound":
+                    logger.info("Outbound call detected")
+                    agent_type = metadata.get("agent", "web")
+                    logger.info(f"Agent type from metadata: {agent_type}")
             except Exception:
                 logger.error("Error parsing agent type from metadata. Getting default agent.")
         else:
