@@ -30,6 +30,7 @@ from openai.types.beta.realtime.session import TurnDetection
 import os
 import json
 import asyncio
+from inbound.config_manager import get_agent_for_number
 
 # Recording input
 # from recording.recording import start_audio_recording, record_participant_audio, start_audio_recording2
@@ -72,7 +73,7 @@ async def my_agent(ctx: JobContext):
     session = AgentSession(
         llm=RealtimeModel(
             input_audio_transcription = realtime.AudioTranscription(
-                    model="gpt-4o-transcribe",
+                    model="gpt-4o-mini-transcribe",
                     prompt=(
                         "The speaker is multilingual and switches between different languages dynamically. "
                         "Do not force any specific language for transcription. "
@@ -81,10 +82,8 @@ async def my_agent(ctx: JobContext):
                 ),
             input_audio_noise_reduction = "near_field",
             turn_detection=TurnDetection(
-                type="server_vad",
-                threshold=0.5,
-                prefix_padding_ms=300,
-                silence_duration_ms=500,
+                type="semantic_vad",
+                eagerness="low",
                 create_response=True,
                 interrupt_response=True,
             ),
@@ -93,7 +92,10 @@ async def my_agent(ctx: JobContext):
         ),
         tts=inference.TTS(model="cartesia/sonic-3", 
                           voice="47f3bbb1-e98f-4e0c-92c5-5f0325e1e206",
-                          #extra_kwargs={"volume": 0.8}
+                          extra_kwargs={
+                              "speed": "normal",
+                              "language": "mix"
+                              }
                             ), # Neha
 
         # tts=cartesia.TTS(model="sonic-3", 
@@ -101,6 +103,7 @@ async def my_agent(ctx: JobContext):
         #                  api_key=os.getenv("CARTESIA_API_KEY"),
         #                 #  emotion="happy",
         #                 #  volume=1.2
+        #                 speed=1.0
         #                  ),
 
         # turn_detection=MultilingualModel(),
@@ -150,11 +153,49 @@ async def my_agent(ctx: JobContext):
 
     # Determine agent type based on room metadata or fallback to "web"
     agent_type = "web"
-    if participant.metadata:
-        try:
-            agent_type = json.loads(participant.metadata).get("agent", "web")
-        except Exception:
-            logger.error("Error parsing agent type from metadata. Getting default agent.")
+    
+    # Check if SIP call 
+    if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
+        # Check sip status for incomming and outgoing
+        if participant.metadata and participant.metadata.strip():
+            try:
+                metadata = json.loads(participant.metadata)
+                if metadata.get("call_type") == "outbound":
+                    logger.info("Outbound call detected")
+                    agent_type = metadata.get("agent", "web")
+                    logger.info(f"Agent type from metadata: {agent_type}")
+            except Exception:
+                logger.error("Error parsing agent type from metadata. Getting default agent.")
+        else:
+            logger.info("Inbound call detected")
+            called_number =  participant.attributes.get("sip.trunkPhoneNumber")
+            logger.info(f"Called number: {called_number}")
+            mapped_agent = get_agent_for_number(called_number)
+            logger.info(f"Mapped agent: {mapped_agent}")
+            if mapped_agent:
+                agent_type = mapped_agent
+                logger.info(f"Using mapped agent {agent_type} for {called_number}")
+
+
+        # called_number =  participant.attributes.get("sip.trunkPhoneNumber")
+        # logger.info(f"Called number: {called_number}")
+
+        # # logger.info(f"Participant identity: {participant.identity}") # Comes like "sip_+1234567890"
+        # # phone_number = participant.identity.split("_")[1]
+        # # logger.info(f"SIP Call detected from {phone_number}")
+
+        # mapped_agent = get_agent_for_number(called_number)
+        # logger.info(f"Mapped agent: {mapped_agent}")
+        # if mapped_agent:
+        #     agent_type = mapped_agent
+        #     logger.info(f"Using mapped agent {agent_type} for {called_number}")
+
+    # # If NOT SIP or no mapping found, fall back to metadata
+    # if agent_type == "web" and participant.metadata:
+    #     try:
+    #         agent_type = json.loads(participant.metadata).get("agent", "web")
+    #     except Exception:
+    #         logger.error("Error parsing agent type from metadata. Getting default agent.")
 
     AgentClass = AGENT_TYPES.get(agent_type, Webagent)
 

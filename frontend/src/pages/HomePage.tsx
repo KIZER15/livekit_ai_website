@@ -6,6 +6,8 @@ import type { AgentType } from '../types/agent';
 import { AgentButton } from '../components2_bank/AgentButton';
 import { OutboundCallModal } from '../components2_bank/OutboundCallModal';
 import { AgentInteractionModal } from '../components2_bank/AgentInteractionModal';
+import { InboundSettingsModal } from '../components2_bank/InboundSettingsModal';
+import { Settings } from 'lucide-react';
 
 // Safely access environment variables with fallback
 const BACKEND_URL = import.meta.env?.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
@@ -17,6 +19,7 @@ export default function HomePage() {
     const [error, setError] = useState<string | null>(null);
     const [outboundModalOpen, setOutboundModalOpen] = useState(false);
     const [interactionModalOpen, setInteractionModalOpen] = useState(false);
+    const [inboundSettingsOpen, setInboundSettingsOpen] = useState(false);
     const [selectedAgent, setSelectedAgent] = useState<AgentType>('web');
 
     const connect = async (chosenAgent: AgentType) => {
@@ -86,8 +89,16 @@ export default function HomePage() {
         <div className="flex flex-col min-h-screen bg-background text-text-main font-sans selection:bg-primary/20">
             <Header status="disconnected" />
 
-            <main className="flex-1 flex flex-col items-center justify-center p-5 relative overflow-hidden">
+            <button
+                onClick={() => setInboundSettingsOpen(true)}
+                className="fixed top-6 right-6 z-50 p-3 bg-white/80 backdrop-blur-xl border border-white/40 shadow-sm rounded-full text-zinc-500 hover:text-primary hover:bg-primary/5 transition-all duration-300 group"
+                title="Inbound Call Settings"
+            >
+                <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+            </button>
 
+            <main className="flex-1 flex flex-col items-center justify-center p-5 relative overflow-hidden">
+                {/* ... existing main content ... */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="max-w-xl w-full text-center space-y-10 animate-fade-in-up relative z-10">
@@ -187,6 +198,11 @@ export default function HomePage() {
                 agentType={selectedAgent}
                 onWebCall={handleWebCall}
                 onOutboundCall={handleOutboundCall}
+            />
+
+            <InboundSettingsModal
+                isOpen={inboundSettingsOpen}
+                onClose={() => setInboundSettingsOpen(false)}
             />
         </div>
     );
