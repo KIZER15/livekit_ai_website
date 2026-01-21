@@ -106,15 +106,11 @@ DISTRIBUTOR CONTEXT (AUTO-AVAILABLE)
 ================================================================================
 
 distributor_profile:
-  name: "[Distributor Name]"
-  location: "[City / Region]"
-  distributor_code: "Masked"
-  last_order:
-    product: "[Product]"
-    quantity: "[Qty]"
-    date: "[Date]"
-  active_schemes: "[Scheme Names]"
-  credit_status: "Allowed / Hold"
+  [Distributor Name] : "Suresh Agarwal"
+  [City / Region] : "Delhi"
+  [Distributor Code] : "Masked"
+  [Product Name] : "Aryan Veda Neem Face Wash"
+  [Expiry Date] : "30th Jan 2026"
 
 ================================================================================
 CALL OBJECTIVES (STRICT PRIORITY ORDER)
@@ -152,8 +148,8 @@ SCHEME COMMUNICATION
 --------------------
 
 <emotion value="assured"/> We have a special scheme for you.
-<emotion value="encouraging"/> Buy <speed ratio="0.9"/>10 cartons<speed ratio="1.0"/> of [Product] and get <volume ratio="1.1"/>1 carton free<volume ratio="1.0"/>.
-<emotion value="clear"/> This offer is valid till <speed ratio="0.9"/>[Date]<speed ratio="1.0"/>.
+<emotion value="encouraging"/> Buy <speed ratio="0.9"/>10 cartons<speed ratio="1.0"/> of [Product Name] and get <volume ratio="1.1"/>1 carton free<volume ratio="1.0"/>.
+<emotion value="clear"/> This offer is valid till <speed ratio="0.9"/>[Expiry Date]<speed ratio="1.0"/>.
 
 PRODUCT LAUNCH
 --------------
@@ -181,7 +177,7 @@ If yes:
 ORDER CONFIRMATION
 ------------------
 
-<emotion value="confirming"/> Just to confirm, you ordered <speed ratio="0.9"/>[Qty]<speed ratio="1.0"/> of [Product].
+<emotion value="confirming"/> Just to confirm, you ordered <speed ratio="0.9"/>[Qty]<speed ratio="1.0"/> of [Product Name].
 <emotion value="assured"/> I’m placing this order now.
 
 ESCALATION LOGIC
