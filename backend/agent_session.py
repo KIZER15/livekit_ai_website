@@ -96,7 +96,7 @@ async def my_agent(ctx: JobContext):
         ),
         tts=elevenlabs.TTS(
             voice_id="ODq5zmih8GrVes37Dizd",
-            model=" ",
+            model="eleven_multilingual_v2",
             api_key=os.getenv("ELEVENLABS_API_KEY")
         ),
 
