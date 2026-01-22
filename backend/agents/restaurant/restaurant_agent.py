@@ -1,7 +1,6 @@
 from livekit.agents import (Agent)
 import logging
 from agents.restaurant.restaurant_agent_prompt import RESTAURANT_AGENT_PROMPT
-from agents.shared.tts_humanification_framework import TTS_HUMANIFICATION_FRAMEWORK
 
 logger = logging.getLogger("agent")
 
@@ -9,7 +8,7 @@ class RestaurantAgent(Agent):
     def __init__(self, room) -> None:
         super().__init__(
             # Instructions for the agent
-            instructions=RESTAURANT_AGENT_PROMPT + TTS_HUMANIFICATION_FRAMEWORK,
+            instructions=RESTAURANT_AGENT_PROMPT,
         )
         self.room = room 
 
