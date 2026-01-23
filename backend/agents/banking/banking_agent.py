@@ -1,17 +1,14 @@
-from livekit.agents import (Agent)
-import logging
-from agents.banking.banking_agent_prompt import BANKING_AGENT_PROMPT2
-# from agents.shared import TTS_HUMANIFICATION_FRAMEWORK
-
-logger = logging.getLogger("agent")
+from livekit.agents import Agent
+from agents.banking.banking_agent_prompt import BANKING_AGENT_PROMPT
+from shared_humanization_prompt.tts_humanificaiton_elevnlabs import TTS_HUMANIFICATION_ELEVNLABS
 
 class BankingAgent(Agent):
     def __init__(self, room) -> None:
         super().__init__(
             # Instructions for the agent
-            instructions=BANKING_AGENT_PROMPT2,
+            instructions=BANKING_AGENT_PROMPT + TTS_HUMANIFICATION_ELEVNLABS,
         )
-        self.room = room 
+        self.room = room
 
     @property
     def welcome_message(self):

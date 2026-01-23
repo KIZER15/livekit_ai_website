@@ -1,13 +1,14 @@
 from livekit.agents import Agent
 from agents.tour.tour_agent_prompt import TOUR_AGENT_PROMPT
+from shared_humanization_prompt.tts_humanificaiton_elevnlabs import TTS_HUMANIFICATION_ELEVNLABS
 
 class TourAgent(Agent):
     def __init__(self, room) -> None:
         super().__init__(
             # Instructions for the agent
-            instructions=TOUR_AGENT_PROMPT,
+            instructions=TOUR_AGENT_PROMPT + TTS_HUMANIFICATION_ELEVNLABS,
         )
-        self.room = room 
+        self.room = room
 
     @property
     def welcome_message(self):

@@ -1,16 +1,14 @@
-from livekit.agents import (Agent)
-import logging
+from livekit.agents import Agent
 from agents.bandhan_banking.bandhan_banking_prompt import BANDHAN_BANKING_AGENT_PROMPT
-
-logger = logging.getLogger("agent")
+from shared_humanization_prompt.tts_humanificaiton_elevnlabs import TTS_HUMANIFICATION_ELEVNLABS
 
 class BandhanBankingAgent(Agent):
     def __init__(self, room) -> None:
         super().__init__(
             # Instructions for the agent
-            instructions=BANDHAN_BANKING_AGENT_PROMPT,
+            instructions=BANDHAN_BANKING_AGENT_PROMPT + TTS_HUMANIFICATION_ELEVNLABS,
         )
-        self.room = room 
+        self.room = room
 
     @property
     def welcome_message(self):

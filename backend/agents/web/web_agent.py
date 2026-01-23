@@ -1,20 +1,20 @@
-from livekit.agents import (Agent, 
-                            function_tool,
-                            RunContext)
+# from agents.base_agent import BaseAgentWithCustomSTT
+from livekit.agents import function_tool, RunContext, Agent
 import chromadb
 import logging
 import json
 from agents.web.web_agent_prompt import WEB_AGENT_PROMPT
+from shared_humanization_prompt.tts_humanificaiton_elevnlabs import TTS_HUMANIFICATION_ELEVNLABS
 
-logger = logging.getLogger("agent")
+logger = logging.getLogger(__name__)
 
 class Webagent(Agent):
     def __init__(self, room) -> None:
         super().__init__(
             # Instructions for the agent
-            instructions=WEB_AGENT_PROMPT,
+            instructions=WEB_AGENT_PROMPT + TTS_HUMANIFICATION_ELEVNLABS,
         )
-        self.room = room 
+        self.room = room
         self.chroma_client = chromadb.PersistentClient(path="./vector_db")
         self.collection = self.chroma_client.get_or_create_collection(name="indusnet_website")
         self.db_fetch_size = 5
@@ -24,7 +24,7 @@ class Webagent(Agent):
     def welcome_message(self):
         return (
             "Welcome to Indus Net Technologies."
-            "I’m Vyom, your web assistant. How can I help you today?"
+            " I'm Vyom, your web assistant. How can I help you today?"
         )
 
     @function_tool

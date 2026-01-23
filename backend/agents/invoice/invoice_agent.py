@@ -1,17 +1,15 @@
-from livekit.agents import (Agent)
-import logging
+from livekit.agents import Agent    
 from agents.invoice.invoice_agent_prompt import INVOICE_PROMPT
-
-logger = logging.getLogger("agent")
+from shared_humanization_prompt.tts_humanificaiton_elevnlabs import TTS_HUMANIFICATION_ELEVNLABS
 
 class InvoiceAgent(Agent):
     def __init__(self, room) -> None:
         super().__init__(
             # Instructions for the agent
-            instructions=INVOICE_PROMPT,
+            instructions=INVOICE_PROMPT + TTS_HUMANIFICATION_ELEVNLABS,
         )
-        self.room = room 
+        self.room = room
 
     @property
     def welcome_message(self):
-        return ("Hi, This is VYOM calling from ITC’s accounts team.")
+        return ("Hi, This is VYOM calling from ITC's accounts team.")

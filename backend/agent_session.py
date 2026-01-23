@@ -1,19 +1,17 @@
 import logging
 from dotenv import load_dotenv
 from livekit import rtc
+from livekit.plugins import silero
 from livekit.agents import (
     AgentServer,
     AgentSession,
     JobContext,
     cli,
-    # inference,
     room_io,
     BackgroundAudioPlayer, 
-    AudioConfig,           
-    # BuiltinAudioClip       
+    AudioConfig,                
 )
 from livekit.plugins import noise_cancellation
-# from livekit.plugins.turn_detector.multilingual import MultilingualModel
 from agents.web.web_agent import Webagent
 from agents.invoice.invoice_agent import InvoiceAgent
 from agents.restaurant.restaurant_agent import RestaurantAgent
@@ -22,17 +20,14 @@ from agents.tour.tour_agent import TourAgent
 from agents.realestate.realestate_agent import RealestateAgent
 from agents.distributor.distributor_agent import DistributorAgent
 from agents.bandhan_banking.bandhan_banking import BandhanBankingAgent
-# from livekit.plugins.openai import realtime
-from livekit.plugins.openai.realtime import RealtimeModel
-from openai.types import realtime
-# from livekit.plugins import openai
-from livekit.plugins import elevenlabs
-# from livekit.plugins import gladia
 from openai.types.beta.realtime.session import TurnDetection
+from livekit.plugins.openai import realtime
+from openai.types.realtime import AudioTranscription
 import os
 import json
 import asyncio
 from inbound.config_manager import get_agent_for_number
+from utils.elevenlabs_nonstream_tts import ElevenLabsNonStreamingTTS
 
 # Recording input
 # from recording.recording import start_audio_recording, record_participant_audio, start_audio_recording2
@@ -69,15 +64,15 @@ server = AgentServer(
 #         logger.info(f"Egress started successfully: {info}")
 #     except Exception as e:
 #         logger.error(f"Failed to start Egress: {e}")
-
-
+    
 @server.rtc_session()
 async def my_agent(ctx: JobContext):
 
     session = AgentSession(
-        llm=RealtimeModel(
-            input_audio_transcription = realtime.AudioTranscription(
-                    model="gpt-4o-mini-transcribe",
+        llm=realtime.RealtimeModel(
+            model="gpt-4o-realtime-preview",
+            input_audio_transcription = AudioTranscription(
+                    model="gpt-4o-transcribe",
                     prompt=(
                         "The speaker is multilingual and switches between different languages dynamically. "
                         "Do not force any specific language for transcription. "
@@ -94,16 +89,13 @@ async def my_agent(ctx: JobContext):
             modalities = ['text'],
             api_key=os.getenv("OPENAI_API_KEY")
         ),
-        tts=elevenlabs.TTS(
+        tts=ElevenLabsNonStreamingTTS(
             voice_id="ODq5zmih8GrVes37Dizd",
-            model="eleven_multilingual_v2",
-            api_key=os.getenv("ELEVENLABS_API_KEY")
+            model="eleven_v3",
+            api_key=os.getenv("ELEVENLABS_API_KEY"),
         ),
-
-        # turn_detection=MultilingualModel(),
-        #vad=silero.VAD.load(min_speech_duration=0.3, activation_threshold=0.7),
         preemptive_generation=True,
-        use_tts_aligned_transcript=True,
+        use_tts_aligned_transcript=False,
     )
 
     #--- Custom Background Audio Setup ---
@@ -154,11 +146,14 @@ async def my_agent(ctx: JobContext):
             logger.info("Inbound call detected")
             called_number =  participant.attributes.get("sip.trunkPhoneNumber")
             logger.info(f"Called number: {called_number}")
-            mapped_agent = get_agent_for_number(called_number)
-            logger.info(f"Mapped agent: {mapped_agent}")
-            if mapped_agent:
-                agent_type = mapped_agent
-                logger.info(f"Using mapped agent {agent_type} for {called_number}")
+            if isinstance(called_number, str) and called_number:
+                mapped_agent = get_agent_for_number(called_number)
+                logger.info(f"Mapped agent: {mapped_agent}")
+                if mapped_agent:
+                    agent_type = mapped_agent
+                    logger.info(f"Using mapped agent {agent_type} for {called_number}")
+            else:
+                logger.info("No SIP trunk phone number available")
 
     else:
         # Web call

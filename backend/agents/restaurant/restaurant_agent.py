@@ -1,8 +1,6 @@
-from livekit.agents import (Agent)
-import logging
+from livekit.agents import Agent
 from agents.restaurant.restaurant_agent_prompt import RESTAURANT_AGENT_PROMPT
 
-logger = logging.getLogger("agent")
 
 class RestaurantAgent(Agent):
     def __init__(self, room) -> None:
@@ -10,7 +8,7 @@ class RestaurantAgent(Agent):
             # Instructions for the agent
             instructions=RESTAURANT_AGENT_PROMPT,
         )
-        self.room = room 
+        self.room = room
 
     @property
     def welcome_message(self):
