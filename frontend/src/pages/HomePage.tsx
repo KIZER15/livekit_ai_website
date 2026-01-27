@@ -125,14 +125,14 @@ export default function HomePage() {
                     )}
 
                     <div className="flex flex-col gap-4 max-w-xs mx-auto w-full">
-                        <AgentButton
+                        {/* <AgentButton
                             label="Indusnet Web Agent"
                             agentType="web"
                             onWebCall={handleWebCall}
                             onOutboundCall={handleOutboundCall}
                             onMobileClick={handleMobileClick}
                             disabled={connecting}
-                        />
+                        /> */}
 
                         <AgentButton
                             label="Invoice Agent"

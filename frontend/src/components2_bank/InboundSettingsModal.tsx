@@ -9,7 +9,7 @@ interface InboundSettingsModalProps {
 }
 
 const AGENT_OPTIONS = [
-    { value: 'web', label: 'Indusnet Web Agent' },
+    // { value: 'web', label: 'Indusnet Web Agent' },
     { value: 'invoice', label: 'Invoice Agent' },
     { value: 'restaurant', label: 'Restaurant Agent' },
     { value: 'bank', label: 'Banking Agent' },
